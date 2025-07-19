@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { DynamicNode, Edge } from 'ngx-vflow';
 import { Observable, of, lastValueFrom } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { DatabaseSchema } from '../models/database-schema.interface';
+import { DatabaseSchema, Relationship, Table } from '../models/database-schema.interface';
 import { DatabaseDiagram } from '../models/database-diagram';
 
 @Injectable({
@@ -18,31 +18,75 @@ export class NodeService {
   }
 
   convertToDbDiagram(dbSchema: DatabaseSchema) {
-    const nodes: DynamicNode[] = dbSchema.tables.map((table, index) => ({
+    const nodes: DynamicNode[] = dbSchema.tables.map((table, index) => this.getNodeEntity(table));
+    const edgesNested = dbSchema.relationships.map((relationShip) => this.getEdgeEntity(relationShip));
+    const edges: Edge[] = edgesNested.flat();
+    return {
+      nodes: nodes,
+      edges: edges
+    };
+  }
+
+  getNodeEntity(table: Table): DynamicNode {
+    table.columns.forEach(column => {
+      column.sourceLinkId = `source_${table.name}_${column.name}`;
+      column.targetLinkId = `target_${table.name}_${column.name}`;
+    });
+    return {
       id: table.name,
-      label: table.name,
       point: signal({ x: 0, y: 0 }),
       type: 'html-template',
-      // text: signal(table.name),      
       data: signal(table)
-    }));
+    };
+  }
 
-    const edges: Edge[] = dbSchema.relationships.map((relationShip) => ({
-      id: `${relationShip.fromTable} -> ${relationShip.toTable}`,
+  getEdgeEntity(relationShip: Relationship): Edge[] {
+    const relationShipColumn = relationShip.columns[0];
+    if (relationShip.type === 'MANY_TO_MANY' && relationShip.junctionTable && relationShip.junctionColumns) {
+      const leftEdge: Edge ={
+        id: `${relationShip.fromTable}.${relationShipColumn.fromColumn} -> ${relationShip.junctionTable}.${relationShip.junctionColumns[0].toColumn}`,
+        source: relationShip.fromTable,
+        target: relationShip.junctionTable,
+        sourceHandle: `source_${relationShip.fromTable}_${relationShipColumn.fromColumn}`,
+        targetHandle: `target_${relationShip.junctionTable}_${relationShip.junctionColumns[0].toColumn}`,
+        curve: 'smooth-step',
+        markers: {
+          end: {
+            type: 'arrow-closed',
+          },
+        },
+        data: signal(relationShip)
+      };
+      const rightEdge: Edge = {
+        id: `${relationShip.junctionTable}.${relationShip.junctionColumns[1].fromColumn} -> ${relationShip.toTable}.${relationShipColumn.toColumn}`,
+        source: relationShip.junctionTable,
+        target: relationShip.toTable,
+        sourceHandle: `source_${relationShip.junctionTable}_${relationShip.junctionColumns[1].fromColumn}`,
+        targetHandle: `target_${relationShip.toTable}_${relationShipColumn.toColumn}`,
+        curve: 'smooth-step',
+        markers: {
+          end: {
+            type: 'arrow-closed',
+          },
+        },
+        data: signal(relationShip)
+      };
+      return [leftEdge, rightEdge];
+    }
+    return [{
+      id: `${relationShip.fromTable}.${relationShipColumn.fromColumn} -> ${relationShip.toTable}.${relationShipColumn.toColumn}`,
       source: relationShip.fromTable,
       target: relationShip.toTable,
+      sourceHandle: `source_${relationShip.fromTable}_${relationShipColumn.fromColumn}`,
+      targetHandle: `target_${relationShip.toTable}_${relationShipColumn.toColumn}`,
       curve: 'smooth-step',
       markers: {
         end: {
           type: 'arrow-closed',
         },
       },
-    }));
-
-    return {
-      nodes: nodes,
-      edges: edges
-    };
+      data: signal(relationShip)
+    }];
   }
 
   loadDatabaseSchema(): Observable<DatabaseSchema> {
@@ -163,6 +207,26 @@ export class NodeService {
           "primaryKey": {
             "name": "pk_orders",
             "columns": ["order_id"]
+          }
+        },
+        {
+          "name": "order_details",
+          "columns": [
+            {
+              "name": "order_id",
+              "type": "INTEGER",
+              "nullable": false,
+              "autoIncrement": true
+            },
+            {
+              "name": "product_id",
+              "type": "INTEGER",
+              "nullable": false
+            }
+          ],
+          "primaryKey": {
+            "name": "pk_order_details",
+            "columns": ["order_id", "product_id"]
           }
         }
       ],

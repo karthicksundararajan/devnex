@@ -21,6 +21,8 @@ export interface Column {
   length?: number;
   default?: string;
   comment?: string;  
+  sourceLinkId?: string; 
+  targetLinkId?: string;  
 }
 
 export interface PrimaryKey {

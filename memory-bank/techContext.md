@@ -25,6 +25,7 @@
 - @angular/forms
 - @angular/router
 - rxjs
+- ngx-vflow
 
 ## Tool Usage Patterns
 - Angular CLI for generation

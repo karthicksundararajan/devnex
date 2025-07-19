@@ -8,6 +8,8 @@
                 </div>
                 <button type="submit" class="btn btn-primary">Submit</button>
             </form>
+            <pre>{{nodes|json}}</pre>
+            <pre>{{edges| json}}</pre>
         </div>
         <div class="col">
             <!-- <label class="slider">
@@ -17,20 +19,23 @@
             <vflow view="auto" [nodes]="nodes" [edges]="edges" [background]="{ type: 'dots' }">
                 <ng-template let-ctx nodeHtml>
                     <div selectable [class.custom-node_selected]="ctx.selected()">
-                        <handle type="target" position="left" />
+
                         <div class="card" style="width: 18rem;">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ctx.node.id}}</h5>
+                            <div class="card-body">                                
                                 <ul class="list-group">
+                                    <li class="list-group-item fw-bold">{{ctx.node.id}}</li>
                                     @for (column of ctx.node.data().columns; track column.name) {
-                                    <li class="list-group-item">{{ column.name }}</li>
+                                    <li class="list-group-item">
+                                        <handle [id]="column.targetLinkId" type="source" position="left" />
+                                        <span>{{ column.name }}</span>
+                                        <handle [id]="column.sourceLinkId" type="target" position="right" />
+                                    </li>
                                     } @empty {
                                     <li class="list-group-item">There are no items.</li>
                                     }
                                 </ul>
                             </div>
                         </div>
-                        <handle type="source" position="left" />
                     </div>
                 </ng-template>
                 <mini-map />
