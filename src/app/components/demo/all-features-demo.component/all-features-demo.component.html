@@ -1,0 +1,30 @@
+<vflow
+    view="auto"
+    [nodes]="store.nodes()"
+    [edges]="store.edges()"
+    [background]="{ type: 'dots' }"
+    (onConnect)="createEdge($event)">
+    <ng-template let-ctx edge>
+      @if (ctx.edge.data?.type === 'animated') {
+        <svg:path
+          class="animated-edge"
+          fill="none"
+          [attr.d]="ctx.path()"
+          [attr.stroke-width]="2"
+          [attr.stroke]="'black'"
+          [attr.marker-end]="ctx.markerEnd()" />
+      }
+    </ng-template>
+
+    <ng-template let-ctx edgeLabelHtml>
+      @if (ctx.label.data.type === 'text') {
+        <div class="label-text">{{ ctx.label.data.text }}</div>
+      }
+
+      @if (ctx.label.data.type === 'delete') {
+        <div class="label-delete" (click)="deleteEdge(ctx.edge)">×</div>
+      }
+    </ng-template>
+
+    <mini-map />
+  </vflow>

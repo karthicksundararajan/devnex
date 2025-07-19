@@ -1,0 +1,12 @@
+{{ emoji }}
+
+<handle type="target" position="left" />
+<handle type="source" position="right" />
+
+<node-toolbar>
+    <div class="emoji-toolbar">
+        @for (emoji of emojis; track $index) {
+        <span (click)="selectEmoji(emoji)">{{ emoji }}</span>
+        }
+    </div>
+</node-toolbar>

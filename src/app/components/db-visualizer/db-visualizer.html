@@ -1,0 +1,40 @@
+<div class="container-fluid">
+    <div class="row min-vh-100">
+        <div class="col-2">
+            <form [formGroup]="promtForm" (submit)="onSubmit()">
+                <div class="mb-3">
+                    <label for="exampleFormControlTextarea1" class="form-label">Enter prompt</label>
+                    <textarea class="form-control" formControlName="prompt" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+        <div class="col">
+            <!-- <label class="slider">
+                <span>Distance</span>
+                <input type="range" min="0" step="1" max="500" value="150" (input)="onDistanceChange($event)" />
+            </label> -->
+            <vflow view="auto" [nodes]="nodes" [edges]="edges" [background]="{ type: 'dots' }">
+                <ng-template let-ctx nodeHtml>
+                    <div selectable [class.custom-node_selected]="ctx.selected()">
+                        <handle type="target" position="left" />
+                        <div class="card" style="width: 18rem;">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ctx.node.id}}</h5>
+                                <ul class="list-group">
+                                    @for (column of ctx.node.data().columns; track column.name) {
+                                    <li class="list-group-item">{{ column.name }}</li>
+                                    } @empty {
+                                    <li class="list-group-item">There are no items.</li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                        <handle type="source" position="left" />
+                    </div>
+                </ng-template>
+                <mini-map />
+            </vflow>
+        </div>
+    </div>
+</div>
